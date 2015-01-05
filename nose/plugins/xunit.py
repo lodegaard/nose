@@ -271,7 +271,13 @@ class Xunit(Plugin):
                 return '<system-err><![CDATA[%s]]></system-err>' % escape_cdata(
                         value)
         return ''
-
+    
+    def handleError(self, test, err):
+        self._unformated_err = err
+     
+    def handleFailure(self, test, err):
+        self._unformated_err = err
+    
     def addError(self, test, err, capt=None):
         """Add error output to Xunit report.
         """
@@ -284,7 +290,7 @@ class Xunit(Plugin):
             type = 'error'
             self.stats['errors'] += 1
 
-        tb = format_exception(err, self.encoding)
+        tb = format_exception(self._unformated_err, self.encoding)
         id = test.id()
 
         self.errorlist.append(
@@ -296,7 +302,7 @@ class Xunit(Plugin):
              'taken': taken,
              'type': type,
              'errtype': self._quoteattr(nice_classname(err[0])),
-             'message': self._quoteattr(exc_message(err)),
+             'message': self._quoteattr(exc_message(self._unformated_err)),
              'tb': escape_cdata(tb),
              'systemout': self._getCapturedStdout(),
              'systemerr': self._getCapturedStderr(),
@@ -306,7 +312,7 @@ class Xunit(Plugin):
         """Add failure output to Xunit report.
         """
         taken = self._timeTaken()
-        tb = format_exception(err, self.encoding)
+        tb = format_exception(self._unformated_err, self.encoding)
         self.stats['failures'] += 1
         id = test.id()
 
@@ -318,7 +324,7 @@ class Xunit(Plugin):
              'name': self._quoteattr(id_split(id)[-1]),
              'taken': taken,
              'errtype': self._quoteattr(nice_classname(err[0])),
-             'message': self._quoteattr(exc_message(err)),
+             'message': self._quoteattr(exc_message(self._unformated_err)),
              'tb': escape_cdata(tb),
              'systemout': self._getCapturedStdout(),
              'systemerr': self._getCapturedStderr(),
